@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import mermaid from 'mermaid';
 
 export default function Home() {
   const [mermaidCode, setMermaidCode] = useState<string>(`graph TD
@@ -11,28 +12,87 @@ export default function Home() {
     C -->|Three| F[fa:fa-car Car]`);
   const [svg, setSvg] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
   const svgContainerRef = useRef<HTMLDivElement>(null);
+
+  // 初始化Mermaid
+  useEffect(() => {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      fontFamily: 'HanyiSentyPea, Hand, Arial, Helvetica, sans-serif',
+      // 设置黑色字体
+      themeCSS: `
+        g {
+          fill: #000000;
+          color: #000000;
+        }
+        .actor {
+          fill: #000000;
+          stroke: #000000;
+          stroke-width: 1px;
+          color: #000000;
+        }
+        .actor text {
+          fill: #000000;
+          stroke: #000000;
+          stroke-width: 1px;
+          color: #000000;
+        }
+        .node rect {
+          fill: #ffffff;
+          stroke: #000000;
+          stroke-width: 1px;
+        }
+        .node circle {
+          fill: #ffffff;
+          stroke: #000000;
+          stroke-width: 1px;
+        }
+        .node ellipse {
+          fill: #ffffff;
+          stroke: #000000;
+          stroke-width: 1px;
+        }
+        .node polygon {
+          fill: #ffffff;
+          stroke: #000000;
+          stroke-width: 1px;
+        }
+        .node path {
+          stroke: #000000;
+          stroke-width: 1px;
+        }
+        .node text {
+          fill: #000000;
+          stroke: #000000;
+          stroke-width: 1px;
+          color: #000000;
+        }
+        .edgePath path {
+          stroke: #000000;
+          stroke-width: 1px;
+        }
+        .edgeLabel text {
+          fill: #000000;
+          stroke: #000000;
+          stroke-width: 1px;
+          color: #000000;
+        }
+      `,
+    });
+  }, []);
 
   const renderDiagram = async () => {
     setLoading(true);
+    setError('');
     try {
-      const response = await fetch('/api/mermaid', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code: mermaidCode }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const svgText = await response.text();
-      setSvg(svgText);
-    } catch (error) {
-      console.error('Error rendering diagram:', error);
-      alert('Error rendering diagram: ' + (error as Error).message);
+      // 渲染Mermaid图表
+      const { svg } = await mermaid.render('mermaid-diagram', mermaidCode);
+      setSvg(svg);
+    } catch (err) {
+      console.error('Error rendering diagram:', err);
+      setError('Error rendering diagram: ' + (err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -85,6 +145,13 @@ export default function Home() {
             </button>
           </div>
         </div>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong className="font-bold">错误: </strong>
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
 
         {svg && (
           <div className="bg-white shadow-md rounded-lg p-6">
