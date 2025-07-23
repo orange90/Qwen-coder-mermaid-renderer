@@ -1,32 +1,11 @@
 import { NextRequest } from 'next/server';
 import mermaid from 'mermaid';
-import { ImageResponse } from '@vercel/og';
 
 // 初始化Mermaid
 mermaid.initialize({
   startOnLoad: false,
   theme: 'default',
   fontFamily: 'HanyiSentyPea, Hand, Arial, Helvetica, sans-serif',
-  // 使用手写字体
-  themeCSS: `
-    @font-face {
-      font-family: 'HanyiSentyPea';
-      src: url('/fonts/HanyiSentyPea.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-    
-    @font-face {
-      font-family: 'Hand';
-      src: url('/fonts/HANDM___.TTF') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-    
-    g {
-      font-family: 'HanyiSentyPea', 'Hand', Arial, Helvetica, sans-serif;
-    }
-  `,
 });
 
 export async function POST(request: NextRequest) {
@@ -38,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
     
     // 渲染Mermaid图表
-    const { svg } = await mermaid.render('mermaid-diagram', code);
+    const { svg, bindFunctions } = await mermaid.render('mermaid-diagram', code);
     
     // 返回SVG
     return new Response(svg, {
@@ -46,9 +25,15 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'image/svg+xml',
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error rendering Mermaid diagram:', error);
-    return new Response('Error rendering diagram', { status: 500 });
+    // 返回更详细的错误信息
+    return new Response(`Error rendering diagram: ${error.message || 'Unknown error'}`, { 
+      status: 500,
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
   }
 }
 
