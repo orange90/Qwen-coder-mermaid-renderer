@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
     
     // 渲染Mermaid图表
-    const { svg, bindFunctions } = await mermaid.render('mermaid-diagram', code);
+    const { svg } = await mermaid.render('mermaid-diagram', code);
     
     // 返回SVG
     return new Response(svg, {
@@ -25,10 +25,11 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'image/svg+xml',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error rendering Mermaid diagram:', error);
     // 返回更详细的错误信息
-    return new Response(`Error rendering diagram: ${error.message || 'Unknown error'}`, { 
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(`Error rendering diagram: ${errorMessage}`, { 
       status: 500,
       headers: {
         'Content-Type': 'text/plain',
